@@ -21,10 +21,10 @@ def build_prompt(prompt_template, paper):
 
 ---
 
-TÍTULO: {paper['title']}
-AUTORES: {', '.join(paper['authors'])}
-FECHA: {paper['date']}
-FUENTE: {paper['source']}
+TITLE: {paper['title']}
+AUTHORS: {', '.join(paper['authors'])}
+DATE: {paper['date']}
+SOURCE: {paper['source']}
 URL: {paper['url']}
 
 ABSTRACT:
@@ -42,13 +42,13 @@ def summarize_paper(paper, prompt_template, model, out_file):
     )
 
     if result.returncode != 0:
-        print(f"  ❌ Error: {result.stderr[:200]}")
+        print(f"  Error: {result.stderr[:200]}")
         return False
 
     # Each summary file: paper title as H1, then metadata, then FAT body
     md = f"# {paper['title']}\n\n"
-    md += f"**Autores:** {', '.join(paper['authors'])}  \n"
-    md += f"**Fecha:** {paper['date']} | **Fuente:** {paper['source']}  \n"
+    md += f"**Authors:** {', '.join(paper['authors'])}  \n"
+    md += f"**Date:** {paper['date']} | **Source:** {paper['source']}  \n"
     md += f"**URL:** {paper['url']}\n\n"
     md += "---\n\n"
     md += result.stdout.strip()
@@ -65,14 +65,14 @@ if __name__ == "__main__":
 
     papers_file = Path("summaries") / f"papers_{date}.json"
     if not papers_file.exists():
-        print(f"❌ No papers file found for today: {papers_file}")
-        print("   Run scripts/search.py first.")
+        print(f"Error: No papers file found for today: {papers_file}")
+        print("Run scripts/search.py first.")
         raise SystemExit(1)
 
     papers = json.load(open(papers_file))
     prompt_template = open("prompts/fat_summary.md").read()
 
-    print(f"📝 Generating {len(papers)} summaries with OpenCode ({model})...")
+    print(f"Generating {len(papers)} summaries with OpenCode ({model})...")
 
     ok, skipped, failed = 0, 0, 0
     for i, paper in enumerate(papers, 1):
@@ -80,16 +80,16 @@ if __name__ == "__main__":
         out_file = Path("summaries") / f"{date}_{i:02d}_{safe_title}.md"
 
         if out_file.exists():
-            print(f"  ⏭  Already exists: {out_file.name}")
+            print(f"  [{i}/{len(papers)}] Skipping (already exists): {out_file.name}")
             skipped += 1
             continue
 
         print(f"  [{i}/{len(papers)}] {paper['title'][:70]}...")
         success = summarize_paper(paper, prompt_template, model, out_file)
         if success:
-            print(f"  ✅ Saved: {out_file.name}")
+            print(f"    Saved: {out_file.name}")
             ok += 1
         else:
             failed += 1
 
-    print(f"\n✅ Done — {ok} new, {skipped} skipped, {failed} failed")
+    print(f"\nDone: {ok} new summaries, {skipped} skipped, {failed} failed")

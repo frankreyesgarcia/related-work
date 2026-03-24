@@ -11,8 +11,8 @@ NO_SUMMARIZE=false
 
 for arg in "$@"; do
   case "$arg" in
-    --dry-run)     DRY_RUN=true ;;
-    --no-search)   NO_SEARCH=true ;;
+    --dry-run)      DRY_RUN=true ;;
+    --no-search)    NO_SEARCH=true ;;
     --no-summarize) NO_SUMMARIZE=true ;;
   esac
 done
@@ -25,8 +25,8 @@ log() {
   echo "$1" | tee -a "$LOG_FILE"
 }
 
-log "🚀 $(date) — Starting research digest..."
-log "   dry-run=${DRY_RUN} no-search=${NO_SEARCH} no-summarize=${NO_SUMMARIZE}"
+log "$(date) — Starting research digest"
+log "  dry-run=${DRY_RUN}  no-search=${NO_SEARCH}  no-summarize=${NO_SUMMARIZE}"
 
 # Load .env if present
 if [ -f .env ]; then
@@ -35,35 +35,34 @@ fi
 
 # Step 1: Search papers
 if [ "$NO_SEARCH" = false ]; then
-  log "🔍 Searching papers..."
+  log "Searching for papers..."
   python3 scripts/search.py 2>&1 | tee -a "$LOG_FILE"
 else
-  log "⏭  Skipping search (--no-search)"
+  log "Skipping search (--no-search)"
 fi
 
 # Step 2: Summarize papers
 if [ "$NO_SUMMARIZE" = false ]; then
-  log "📝 Generating summaries..."
+  log "Generating summaries..."
   python3 scripts/summarize.py 2>&1 | tee -a "$LOG_FILE"
 else
-  log "⏭  Skipping summarize (--no-summarize)"
+  log "Skipping summarize (--no-summarize)"
 fi
 
 # Step 3: Send email digest
 if [ "$DRY_RUN" = false ]; then
-  log "📬 Sending email digest..."
+  log "Sending email digest..."
   python3 scripts/email_digest.py 2>&1 | tee -a "$LOG_FILE"
 else
-  log "⏭  Skipping email (--dry-run)"
-  log "   Building digest file only..."
+  log "Skipping email (--dry-run). Building digest file only..."
   python3 -c "
-import yaml, sys
+import sys
 sys.path.insert(0, 'scripts')
 from email_digest import build_digest
 from datetime import datetime
 digest, count = build_digest(datetime.now().strftime('%Y-%m-%d'))
-print(f'   Digest built: {count} summaries')
+print(f'  Digest built: {count} summaries')
 " 2>&1 | tee -a "$LOG_FILE"
 fi
 
-log "✅ Completed at $(date)"
+log "Completed at $(date)"

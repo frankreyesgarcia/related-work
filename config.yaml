@@ -23,7 +23,7 @@ semantic_scholar_api_key: ""
 
 email:
   to: "your@email.com"
-  subject_prefix: "📚 Research Digest"
+  subject_prefix: "Research Digest"
 
 schedule:
   frequency: "daily"   # daily | weekly

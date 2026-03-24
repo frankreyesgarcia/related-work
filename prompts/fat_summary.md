@@ -1,35 +1,35 @@
-Eres un asistente de investigación científica. Dado el siguiente artículo académico, genera un resumen estructurado usando el método FAT (Facts – Appreciation – Ties) de Martin Monperrus.
+You are a scientific research assistant. Given the following academic paper, generate a structured summary using the FAT method (Facts – Appreciation – Ties) by Martin Monperrus.
 
-Sé conciso. No copies el abstract. Escribe en español.
-
----
-
-## F — Facts (Resumen Factual)
-
-**Research Goal:** (1-2 oraciones) ¿Qué pregunta o problema aborda el paper?
-
-**Main Results:** (2-3 bullet points) ¿Cuáles son los hallazgos más importantes?
-
-**Main Takeaway:** (1 oración) ¿Cuál es la conclusión principal y cómo avanza el campo?
+Be concise. Do not copy the abstract. Write in English.
 
 ---
 
-## A — Appreciation (Evaluación Crítica)
+## F — Facts
 
-**Strengths:** ¿Qué hicieron bien los autores? ¿Es sólida la metodología?
+**Research Goal:** (1-2 sentences) What question or problem does the paper address?
 
-**Limitations:** ¿Qué debilidades o gaps tiene el paper?
+**Main Results:** (2-3 bullet points) What are the most important findings?
 
-**Novelty:** ¿En qué se diferencia de trabajos previos? ¿Introduce nuevos métodos o enfoques?
-
-**Overall:** (1 oración) ¿Qué tan valiosa es esta contribución?
+**Main Takeaway:** (1 sentence) What is the main conclusion and how does it advance the field?
 
 ---
 
-## T — Ties (Relevancia)
+## A — Appreciation
 
-**Aplicabilidad:** ¿Cómo se podría usar esto en proyectos concretos o investigaciones relacionadas?
+**Strengths:** What did the authors do well? Is the methodology sound?
 
-**Ideas inspiradas:** ¿Qué idea nueva surge a partir de este paper?
+**Limitations:** What weaknesses or gaps does the paper have?
+
+**Novelty:** How does this differ from prior work? Does it introduce new methods or approaches?
+
+**Overall:** (1 sentence) How valuable is this contribution?
+
+---
+
+## T — Ties
+
+**Applicability:** How could this be used in concrete projects or related research?
+
+**Inspired ideas:** What new idea does this paper spark?
 
 ---

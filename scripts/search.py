@@ -52,11 +52,11 @@ def search_semantic_scholar(query, api_key="", max_results=5):
             timeout=15,
         )
     except requests.RequestException as e:
-        print(f"  ⚠ Semantic Scholar request failed: {e}")
+        print(f"  Warning: Semantic Scholar request failed: {e}")
         return []
 
     if r.status_code != 200:
-        print(f"  ⚠ Semantic Scholar error: {r.status_code}")
+        print(f"  Warning: Semantic Scholar returned status {r.status_code}")
         return []
 
     papers = []
@@ -89,13 +89,13 @@ def deduplicate(papers):
 if __name__ == "__main__":
     cfg = load_config()
     query = cfg["topic"]
-    print(f"🔍 Searching: '{query}'")
+    print(f"Searching: '{query}'")
 
     papers = []
 
     if "arxiv" in cfg["sources"]:
         found = search_arxiv(query, cfg.get("arxiv_categories", ["cs.AI"]), cfg["max_papers"])
-        print(f"  arXiv: {len(found)} papers")
+        print(f"  arXiv: {len(found)} papers found")
         papers += found
 
     if "semantic_scholar" in cfg["sources"]:
@@ -104,7 +104,7 @@ if __name__ == "__main__":
             cfg.get("semantic_scholar_api_key", ""),
             cfg["max_papers"],
         )
-        print(f"  Semantic Scholar: {len(found)} papers")
+        print(f"  Semantic Scholar: {len(found)} papers found")
         papers += found
 
     papers = deduplicate(papers)[: cfg["max_papers"]]
@@ -112,4 +112,4 @@ if __name__ == "__main__":
     out = Path("summaries") / f"papers_{datetime.now().strftime('%Y-%m-%d')}.json"
     out.parent.mkdir(exist_ok=True)
     json.dump(papers, open(out, "w"), ensure_ascii=False, indent=2)
-    print(f"✅ {len(papers)} papers saved → {out}")
+    print(f"Done: {len(papers)} papers saved to {out}")

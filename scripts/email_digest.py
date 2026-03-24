@@ -21,8 +21,8 @@ def build_digest(date_str):
     if not files:
         return None, 0
 
-    digest = f"# 📚 Research Digest — {date_str}\n\n"
-    digest += f"**{len(files)} artículos resumidos**\n\n---\n\n"
+    digest = f"# Research Digest — {date_str}\n\n"
+    digest += f"**{len(files)} papers summarized**\n\n---\n\n"
     for f in files:
         digest += f.read_text(encoding="utf-8")
         digest += "\n\n---\n\n"
@@ -30,7 +30,7 @@ def build_digest(date_str):
     Path("digests").mkdir(exist_ok=True)
     digest_file = Path("digests") / f"digest_{date_str}.md"
     digest_file.write_text(digest, encoding="utf-8")
-    print(f"📄 Digest saved → {digest_file}")
+    print(f"Digest saved to {digest_file}")
     return digest, len(files)
 
 
@@ -68,7 +68,7 @@ def send_email(subject, body_md, cfg):
     email_from = os.environ.get("EMAIL_FROM", smtp_user)
 
     if not smtp_user or not smtp_pass:
-        print("❌ SMTP_USER and SMTP_PASS environment variables are required.")
+        print("Error: SMTP_USER and SMTP_PASS environment variables are required.")
         raise SystemExit(1)
 
     msg = MIMEMultipart("alternative")
@@ -89,15 +89,15 @@ if __name__ == "__main__":
     cfg = load_config()
     date_str = datetime.now().strftime("%Y-%m-%d")
 
-    print(f"📬 Building digest for {date_str}...")
+    print(f"Building digest for {date_str}...")
     digest, count = build_digest(date_str)
 
     if not digest:
-        print("⚠  No summaries found for today. Run summarize.py first.")
+        print("No summaries found for today. Run summarize.py first.")
         raise SystemExit(0)
 
-    prefix = cfg["email"].get("subject_prefix", "📚 Research Digest")
-    subject = f"{prefix} {date_str} — {count} papers sobre '{cfg['topic']}'"
+    prefix = cfg["email"].get("subject_prefix", "Research Digest")
+    subject = f"{prefix} {date_str} — {count} papers on '{cfg['topic']}'"
 
     send_email(subject, digest, cfg)
-    print(f"✅ Email sent to {cfg['email']['to']} with {count} summaries")
+    print(f"Email sent to {cfg['email']['to']} with {count} summaries")
