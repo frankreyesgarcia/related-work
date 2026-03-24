@@ -1,4 +1,5 @@
 .env
+tracker.db
 summaries/*.json
 summaries/*.md
 digests/*.md

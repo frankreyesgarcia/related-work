@@ -5,8 +5,7 @@ import feedparser
 import requests
 import json
 import yaml
-import sys
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 
@@ -14,7 +13,7 @@ def load_config():
     return yaml.safe_load(open("config.yaml"))
 
 
-def search_arxiv(query, categories, max_results=5):
+def search_arxiv(query, categories, max_results=5, since: datetime | None = None):
     cat_filter = "+OR+".join(f"cat:{c}" for c in categories)
     url = (
         f"http://export.arxiv.org/api/query?"
@@ -25,6 +24,9 @@ def search_arxiv(query, categories, max_results=5):
     feed = feedparser.parse(url)
     papers = []
     for entry in feed.entries:
+        pub = datetime(*entry.published_parsed[:6], tzinfo=timezone.utc)
+        if since and pub < since:
+            continue
         papers.append({
             "id": entry.id.split("/abs/")[-1],
             "title": entry.title.replace("\n", " ").strip(),
@@ -38,12 +40,12 @@ def search_arxiv(query, categories, max_results=5):
     return papers
 
 
-def search_semantic_scholar(query, api_key="", max_results=5):
+def search_semantic_scholar(query, api_key="", max_results=5, since: datetime | None = None):
     headers = {"x-api-key": api_key} if api_key else {}
     params = {
         "query": query,
         "limit": max_results,
-        "fields": "title,abstract,year,authors,openAccessPdf,externalIds",
+        "fields": "title,abstract,year,authors,openAccessPdf,externalIds,publicationDate",
     }
     try:
         r = requests.get(
@@ -64,13 +66,21 @@ def search_semantic_scholar(query, api_key="", max_results=5):
     for p in r.json().get("data", []):
         if not p.get("abstract"):
             continue
+        pub_date_str = p.get("publicationDate") or str(p.get("year", ""))
+        if since and pub_date_str:
+            try:
+                pub = datetime.fromisoformat(pub_date_str).replace(tzinfo=timezone.utc)
+                if pub < since:
+                    continue
+            except ValueError:
+                pass  # year-only string — keep the paper
         papers.append({
             "id": p["paperId"],
             "title": p["title"],
             "abstract": p["abstract"],
             "authors": [a["name"] for a in p.get("authors", [])[:3]],
             "url": f"https://semanticscholar.org/paper/{p['paperId']}",
-            "date": str(p.get("year", "N/A")),
+            "date": pub_date_str,
             "source": "semantic_scholar",
             "topic": query,
         })
@@ -93,14 +103,18 @@ if __name__ == "__main__":
     topics = cfg.get("topics") or [cfg.get("topic", "")]
     max_per_topic = cfg["max_papers"]
 
+    # Only fetch papers from the last 24 hours
+    since = datetime.now(tz=timezone.utc) - timedelta(days=1)
+    print(f"Fetching papers published since {since.strftime('%Y-%m-%d %H:%M UTC')}")
+
     all_papers = []
 
     for query in topics:
         print(f"Searching: '{query}'")
 
         if "arxiv" in cfg["sources"]:
-            found = search_arxiv(query, cfg.get("arxiv_categories", ["cs.AI"]), max_per_topic)
-            print(f"  arXiv: {len(found)} papers found")
+            found = search_arxiv(query, cfg.get("arxiv_categories", ["cs.AI"]), max_per_topic, since=since)
+            print(f"  arXiv: {len(found)} recent papers found")
             all_papers += found
 
         if "semantic_scholar" in cfg["sources"]:
@@ -108,8 +122,9 @@ if __name__ == "__main__":
                 query,
                 cfg.get("semantic_scholar_api_key", ""),
                 max_per_topic,
+                since=since,
             )
-            print(f"  Semantic Scholar: {len(found)} papers found")
+            print(f"  Semantic Scholar: {len(found)} recent papers found")
             all_papers += found
 
     all_papers = deduplicate(all_papers)

@@ -6,6 +6,7 @@ import subprocess
 import yaml
 from datetime import datetime
 from pathlib import Path
+from tracker import is_seen, mark_seen, record_run, seen_count
 
 
 def load_config():
@@ -73,25 +74,37 @@ if __name__ == "__main__":
 
     papers = json.load(open(papers_file))
     prompt_template = open("prompts/fat_summary.md").read()
+    cfg_topics = cfg.get("topics") or [cfg.get("topic", "")]
 
-    print(f"Generating {len(papers)} summaries with OpenCode ({model})...")
+    print(f"Tracker: {seen_count()} papers seen so far across all runs")
+    print(f"Generating summaries with OpenCode ({model})...")
 
-    ok, skipped, failed = 0, 0, 0
+    ok, skipped_tracker, skipped_file, failed = 0, 0, 0, 0
     for i, paper in enumerate(papers, 1):
+        # Skip if already summarized in a previous run
+        if is_seen(paper["id"]):
+            print(f"  [{i}/{len(papers)}] Already seen (tracker): {paper['title'][:60]}...")
+            skipped_tracker += 1
+            continue
+
         safe_title = safe_filename(paper["title"])
         out_file = Path("summaries") / f"{date}_{i:02d}_{safe_title}.md"
 
         if out_file.exists():
-            print(f"  [{i}/{len(papers)}] Skipping (already exists): {out_file.name}")
-            skipped += 1
+            print(f"  [{i}/{len(papers)}] Skipping (file exists): {out_file.name}")
+            mark_seen(paper)
+            skipped_file += 1
             continue
 
         print(f"  [{i}/{len(papers)}] {paper['title'][:70]}...")
         success = summarize_paper(paper, prompt_template, model, out_file)
         if success:
+            mark_seen(paper)
             print(f"    Saved: {out_file.name}")
             ok += 1
         else:
             failed += 1
 
-    print(f"\nDone: {ok} new summaries, {skipped} skipped, {failed} failed")
+    record_run(date, cfg_topics, len(papers), ok)
+    total_skipped = skipped_tracker + skipped_file
+    print(f"\nDone: {ok} new, {total_skipped} skipped ({skipped_tracker} tracker + {skipped_file} file), {failed} failed")
