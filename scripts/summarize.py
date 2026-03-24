@@ -49,6 +49,8 @@ def summarize_paper(paper, prompt_template, model, out_file):
     md = f"# {paper['title']}\n\n"
     md += f"**Authors:** {', '.join(paper['authors'])}  \n"
     md += f"**Date:** {paper['date']} | **Source:** {paper['source']}  \n"
+    if paper.get("topic"):
+        md += f"**Topic:** {paper['topic']}  \n"
     md += f"**URL:** {paper['url']}\n\n"
     md += "---\n\n"
     md += result.stdout.strip()

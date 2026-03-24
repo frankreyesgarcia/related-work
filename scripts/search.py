@@ -33,6 +33,7 @@ def search_arxiv(query, categories, max_results=5):
             "url": entry.link,
             "date": entry.published[:10],
             "source": "arxiv",
+            "topic": query,
         })
     return papers
 
@@ -71,6 +72,7 @@ def search_semantic_scholar(query, api_key="", max_results=5):
             "url": f"https://semanticscholar.org/paper/{p['paperId']}",
             "date": str(p.get("year", "N/A")),
             "source": "semantic_scholar",
+            "topic": query,
         })
     return papers
 
@@ -88,28 +90,31 @@ def deduplicate(papers):
 
 if __name__ == "__main__":
     cfg = load_config()
-    query = cfg["topic"]
-    print(f"Searching: '{query}'")
+    topics = cfg.get("topics") or [cfg.get("topic", "")]
+    max_per_topic = cfg["max_papers"]
 
-    papers = []
+    all_papers = []
 
-    if "arxiv" in cfg["sources"]:
-        found = search_arxiv(query, cfg.get("arxiv_categories", ["cs.AI"]), cfg["max_papers"])
-        print(f"  arXiv: {len(found)} papers found")
-        papers += found
+    for query in topics:
+        print(f"Searching: '{query}'")
 
-    if "semantic_scholar" in cfg["sources"]:
-        found = search_semantic_scholar(
-            query,
-            cfg.get("semantic_scholar_api_key", ""),
-            cfg["max_papers"],
-        )
-        print(f"  Semantic Scholar: {len(found)} papers found")
-        papers += found
+        if "arxiv" in cfg["sources"]:
+            found = search_arxiv(query, cfg.get("arxiv_categories", ["cs.AI"]), max_per_topic)
+            print(f"  arXiv: {len(found)} papers found")
+            all_papers += found
 
-    papers = deduplicate(papers)[: cfg["max_papers"]]
+        if "semantic_scholar" in cfg["sources"]:
+            found = search_semantic_scholar(
+                query,
+                cfg.get("semantic_scholar_api_key", ""),
+                max_per_topic,
+            )
+            print(f"  Semantic Scholar: {len(found)} papers found")
+            all_papers += found
+
+    all_papers = deduplicate(all_papers)
 
     out = Path("summaries") / f"papers_{datetime.now().strftime('%Y-%m-%d')}.json"
     out.parent.mkdir(exist_ok=True)
-    json.dump(papers, open(out, "w"), ensure_ascii=False, indent=2)
-    print(f"Done: {len(papers)} papers saved to {out}")
+    json.dump(all_papers, open(out, "w"), ensure_ascii=False, indent=2)
+    print(f"Done: {len(all_papers)} papers saved to {out} (across {len(topics)} topics)")

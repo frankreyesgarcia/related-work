@@ -1,5 +1,9 @@
 # research-digest configuration
-topic: "large language models reasoning"
+topics:
+  - "breaking dependency updates"
+  - "API migration"
+  - "fixing API migrations"
+  - "transformation rules generation"
 
 sources:
   - arxiv
