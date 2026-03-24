@@ -69,9 +69,15 @@ def search_semantic_scholar(query, api_key="", max_results=5, since: datetime | 
         pub_date_str = p.get("publicationDate") or str(p.get("year", ""))
         if since and pub_date_str:
             try:
-                pub = datetime.fromisoformat(pub_date_str).replace(tzinfo=timezone.utc)
-                if pub < since:
-                    continue
+                pub = datetime.fromisoformat(pub_date_str)
+                # date-only (no time) — compare by date to stay inclusive for the day
+                if pub.tzinfo is None and len(pub_date_str) <= 10:
+                    if pub.date() < since.date():
+                        continue
+                else:
+                    pub = pub if pub.tzinfo else pub.replace(tzinfo=timezone.utc)
+                    if pub < since:
+                        continue
             except ValueError:
                 pass  # year-only string — keep the paper
         papers.append({
