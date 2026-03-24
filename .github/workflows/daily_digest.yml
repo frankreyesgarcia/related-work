@@ -1,0 +1,56 @@
+name: Daily Research Digest
+
+on:
+  schedule:
+    - cron: "0 8 * * *"   # Every day at 8am UTC
+  workflow_dispatch:        # Allow manual trigger from GitHub UI
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Python dependencies
+        run: pip install feedparser requests pyyaml
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install OpenCode CLI
+        run: npm install -g opencode-ai
+
+      - name: Authenticate OpenCode Zen
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+        run: |
+          # Write the API key to OpenCode config so it uses Zen free models
+          mkdir -p ~/.config/opencode
+          echo '{"providers":{"opencode":{"apiKey":"'"$OPENCODE_API_KEY"'"}}}' \
+            > ~/.config/opencode/config.json
+
+      - name: Run research digest pipeline
+        env:
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          EMAIL_FROM: ${{ secrets.SMTP_USER }}
+        run: |
+          chmod +x run.sh
+          ./run.sh
+
+      - name: Commit summaries back to repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add digests/ summaries/ || true
+          git diff --cached --quiet || git commit -m "chore: add digest $(date +%Y-%m-%d)"
+          git push

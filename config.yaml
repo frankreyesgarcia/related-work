@@ -1,0 +1,30 @@
+# research-digest configuration
+topic: "large language models reasoning"
+
+sources:
+  - arxiv
+  - semantic_scholar
+
+max_papers: 10
+
+arxiv_categories:
+  - cs.AI
+  - cs.CL
+
+# Free OpenCode Zen models (no API key cost):
+#   opencode/minimax-2.5-free
+#   opencode/mimo-v2-pro-free
+#   opencode/mimo-v2-omni-free
+#   opencode/nemotron-3-super-free
+opencode_model: "opencode/minimax-2.5-free"
+
+# Optional: get a free key at https://www.semanticscholar.org/product/api
+semantic_scholar_api_key: ""
+
+email:
+  to: "your@email.com"
+  subject_prefix: "📚 Research Digest"
+
+schedule:
+  frequency: "daily"   # daily | weekly
+  hour: 8              # UTC hour to run
