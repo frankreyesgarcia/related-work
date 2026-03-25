@@ -1,0 +1,9 @@
+.env
+tracker.db
+summaries/*.json
+summaries/*.md
+digests/*.md
+logs/*.log
+__pycache__/
+*.pyc
+.DS_Store
