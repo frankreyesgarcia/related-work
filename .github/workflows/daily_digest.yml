@@ -52,11 +52,13 @@ jobs:
           chmod +x run.sh
           ./run.sh
 
-      - name: Commit summaries back to repo
+      - name: Print summaries
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git pull --rebase origin main
-          git add digests/ summaries/ || true
-          git diff --cached --quiet || git commit -m "chore: add digest $(date +%Y-%m-%d)"
-          git push origin main
+          echo "===== SUMMARIES ====="
+          for f in summaries/*.md; do
+            [ -f "$f" ] && echo "--- $f ---" && cat "$f" && echo ""
+          done
+          echo "===== DIGEST ====="
+          for f in digests/*.md; do
+            [ -f "$f" ] && cat "$f"
+          done
