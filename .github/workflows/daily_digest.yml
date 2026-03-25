@@ -54,11 +54,12 @@ jobs:
 
       - name: Print summaries
         run: |
+          shopt -s nullglob
           echo "===== SUMMARIES ====="
           for f in summaries/*.md; do
-            [ -f "$f" ] && echo "--- $f ---" && cat "$f" && echo ""
+            echo "--- $f ---" && cat "$f" && echo ""
           done
           echo "===== DIGEST ====="
           for f in digests/*.md; do
-            [ -f "$f" ] && cat "$f"
+            cat "$f"
           done
